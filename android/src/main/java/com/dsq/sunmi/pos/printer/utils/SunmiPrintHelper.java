@@ -483,7 +483,7 @@ public class SunmiPrintHelper {
 
     }
 
-    public void printDsq(String name,String branch,String merchant,String dateTime,String thankYou,String thisIsAcopy,String couponNumber,String value,String points){
+    public void printDsq(String name,String branch,String merchant, String transactionType, String dateTime,String thankYou,String thisIsAcopy,String couponNumber,String value,String points){
         if(sunmiPrinterService == null){
             //TODO Service disconnection processing
             return ;
@@ -509,6 +509,8 @@ public class SunmiPrintHelper {
             sunmiPrinterService.printText("--------------------------------", null);
             sunmiPrinterService.lineWrap(2, null);
             sunmiPrinterService.printTextWithFont(couponNumber + "\n", null, 25, null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printTextWithFont(transactionType + "\n", null, 25, null);
             sunmiPrinterService.lineWrap(1, null);
             if (points != null) {
                 sunmiPrinterService.printTextWithFont(points + "\n", null, 25, null);
