@@ -18,9 +18,9 @@ public class SunmiPrinterAndroidSdkModule extends ReactContextBaseJavaModule {
         SunmiPrintHelper.getInstance().initSunmiPrinterService(reactContext);
     }
     @ReactMethod
-    public static void printSunmiPrinter(String name, String branch, String merchant, String transactionType, String dateTime, String thankYou, String thisIsAcopy, String couponNumber, String value, String points) {
+    public static void printSunmiPrinter(String name, String branch, String merchant, String transactionType, String dateTime, String thankYou, String thisIsAcopy, String transactionId, String value, String points, String imageUrl) {
         
-        SunmiPrintHelper.getInstance().printDsq(name, branch, merchant, transactionType, dateTime, thankYou, thisIsAcopy, couponNumber, value, points);
+        SunmiPrintHelper.getInstance().printDsq(name, branch, merchant, transactionType, dateTime, thankYou, thisIsAcopy, transactionId, value, points, imageUrl);
     }
 
     @Override

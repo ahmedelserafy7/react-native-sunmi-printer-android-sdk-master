@@ -1,6 +1,8 @@
 <!-- AndroidManifest.xml -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.dsq.sunmi.pos.printer">
+    package="com.dsq.sunmi.pos.printer">
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

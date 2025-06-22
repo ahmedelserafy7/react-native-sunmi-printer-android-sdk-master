@@ -14,6 +14,13 @@ import com.sunmi.peripheral.printer.InnerResultCallback;
 import com.sunmi.peripheral.printer.SunmiPrinterService;
 import com.sunmi.peripheral.printer.WoyouConsts;
 
+import java.io.InputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import android.graphics.BitmapFactory;
+
 /**
  * <pre>
  *      This class is used to demonstrate various printing effects
@@ -483,50 +490,94 @@ public class SunmiPrintHelper {
 
     }
 
-    public void printDsq(String name,String branch,String merchant, String transactionType, String dateTime,String thankYou,String thisIsAcopy,String couponNumber,String value,String points){
-        if(sunmiPrinterService == null){
-            //TODO Service disconnection processing
-            return ;
-        }
+    public void printDsq(String name, String branch, String merchant, String transactionType,
+                     String dateTime, String thankYou, String thisIsACopy, String transactionId,
+                     String value, String points, String imageUrl) {
 
-        try {
-            sunmiPrinterService.printerInit(null);
-            sunmiPrinterService.setAlignment(0, null);
-            sunmiPrinterService.printTextWithFont(name, null, 40, null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(branch, null, 40, null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printText("--------------------------------", null);
-            sunmiPrinterService.printText("--------------------------------", null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(merchant, null, 30, null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(branch + "\n", null, 30, null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(dateTime , null, 30, null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printText("--------------------------------", null);
-            sunmiPrinterService.printText("--------------------------------", null);
-            sunmiPrinterService.lineWrap(2, null);
-            sunmiPrinterService.printTextWithFont(couponNumber + "\n", null, 25, null);
-            sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(transactionType + "\n", null, 25, null);
-            sunmiPrinterService.lineWrap(1, null);
-            if (points != null) {
-                sunmiPrinterService.printTextWithFont(points + "\n", null, 25, null);
+    if (sunmiPrinterService == null) {
+        // Handle disconnected service
+        return;
+    }
+
+    try {
+        // Initialize printer
+        sunmiPrinterService.printerInit(null);
+        sunmiPrinterService.setAlignment(1, null); // Center alignment
+
+        // Print logo if available
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Bitmap image = getBitmapFromURL(imageUrl);
+            if (image != null) {
+                sunmiPrinterService.printBitmap(image, null);
                 sunmiPrinterService.lineWrap(1, null);
             }
+        }
+            sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.ENABLE); // Enable bold
+            sunmiPrinterService.printTextWithFont(name, null, 30, null);
+            sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.DISABLE); // Disable bold
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.ENABLE); // Enable bold
+            sunmiPrinterService.printTextWithFont("Transaction Success", null, 30, null);
+            sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.DISABLE); // Disable bold
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printTextWithFont(merchant, null, 25, null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printTextWithFont("- " + branch + " -", null, 25, null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printTextWithFont(dateTime , null, 24, null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printText("--------------------------------", null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.setAlignment(0, null);
+            sunmiPrinterService.printTextWithFont(transactionType + "\n", null, 25, null);
+            sunmiPrinterService.lineWrap(1, null);
+
+            // Print your text
+            sunmiPrinterService.printTextWithFont(transactionId + "\n", null, 25, null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printText("--------------------------------", null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.lineWrap(1, null);
+            // if (points != null) {
+            //     sunmiPrinterService.printTextWithFont(points + "\n", null, 25, null);
+            //     sunmiPrinterService.lineWrap(1, null);
+            // }
             sunmiPrinterService.printTextWithFont(value + "\n", null, 25, null);
             sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.setAlignment(1, null);
-            sunmiPrinterService.printTextWithFont( thankYou, null, 25, null);
+
+            sunmiPrinterService.printText("--------------------------------", null);
             sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont( thisIsAcopy, null, 25, null);
+            sunmiPrinterService.setAlignment(1, null);
+            sunmiPrinterService.printTextWithFont(thankYou, null, 25, null);
+            sunmiPrinterService.lineWrap(1, null);
+            sunmiPrinterService.printTextWithFont(thisIsACopy, null, 25, null);
             sunmiPrinterService.autoOutPaper(null);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
+
+public Bitmap getBitmapFromURL(String src) {
+    try {
+        URL url = new URL(src);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setDoInput(true);
+        connection.connect();
+        InputStream input = connection.getInputStream();
+        Bitmap original = BitmapFactory.decodeStream(input);
+        if (original == null) return null;
+
+        // Resize to safe width for Sunmi printer (typically 384px or 576px)
+        int targetWidth = 300;
+        float aspectRatio = (float) original.getHeight() / original.getWidth();
+        int targetHeight = Math.round(targetWidth * aspectRatio);
+        return Bitmap.createScaledBitmap(original, targetWidth, targetHeight, true);
+
+    } catch (IOException e) {
+        e.printStackTrace();
+        return null;
+    }
+}
 
 
     /**
