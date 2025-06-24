@@ -538,12 +538,14 @@ public class SunmiPrintHelper {
             sunmiPrinterService.printText("--------------------------------", null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.lineWrap(1, null);
-            // if (points != null) {
-            //     sunmiPrinterService.printTextWithFont(points + "\n", null, 25, null);
-            //     sunmiPrinterService.lineWrap(1, null);
-            // }
+
             sunmiPrinterService.printTextWithFont(value + "\n", null, 25, null);
             sunmiPrinterService.lineWrap(1, null);
+
+            if (points != null) {
+                sunmiPrinterService.printTextWithFont(points + "\n", null, 25, null);
+                sunmiPrinterService.lineWrap(1, null);
+            }
 
             sunmiPrinterService.printText("--------------------------------", null);
             sunmiPrinterService.lineWrap(1, null);
