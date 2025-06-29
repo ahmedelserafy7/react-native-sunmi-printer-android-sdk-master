@@ -491,7 +491,7 @@ public class SunmiPrintHelper {
     }
 
     public void printDsq(String name, String branch, String merchant, String transactionType,
-                     String dateTime, String thankYou, String thisIsACopy, String transactionId,
+                     String dateTime, String thankYou, String thisIsACopy, String transactionId, String walletCode,
                      String value, String points, String imageUrl) {
 
     if (sunmiPrinterService == null) {
@@ -530,6 +530,13 @@ public class SunmiPrintHelper {
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.setAlignment(0, null);
+            if (walletCode != null) {
+                sunmiPrinterService.printTextWithFont(walletCode + "\n", null, 25, null);
+                sunmiPrinterService.lineWrap(1, null);
+                sunmiPrinterService.printText("--------------------------------", null);
+                sunmiPrinterService.lineWrap(1, null);
+                sunmiPrinterService.lineWrap(1, null);
+            }
             sunmiPrinterService.printTextWithFont(transactionType + "\n", null, 25, null);
             sunmiPrinterService.lineWrap(1, null);
 
