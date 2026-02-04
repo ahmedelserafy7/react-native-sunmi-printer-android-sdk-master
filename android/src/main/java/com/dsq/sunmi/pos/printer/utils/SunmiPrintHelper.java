@@ -490,7 +490,7 @@ public class SunmiPrintHelper {
 
     }
 
-    public void printDsq(String name, String branch, String merchant, String transactionType,
+    public void printDsq(String name, String successHeader, String branch, String merchant, String transactionType,
                      String dateTime, String thankYou, String thisIsACopy, String transactionId, String walletCode,
                      String value, String points, String imageUrl) {
 
@@ -517,7 +517,7 @@ public class SunmiPrintHelper {
             sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.DISABLE); // Disable bold
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.ENABLE); // Enable bold
-            sunmiPrinterService.printTextWithFont("Transaction Success", null, 30, null);
+            sunmiPrinterService.printTextWithFont(successHeader, null, 30, null);
             sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.DISABLE); // Disable bold
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.printTextWithFont(merchant, null, 25, null);
