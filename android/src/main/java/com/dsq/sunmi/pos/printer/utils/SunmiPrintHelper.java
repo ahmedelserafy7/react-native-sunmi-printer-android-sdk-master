@@ -20,6 +20,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 
 /**
  * <pre>
@@ -110,7 +115,46 @@ public class SunmiPrintHelper {
         } catch (InnerPrinterException e) {
             e.printStackTrace();
         }
-        sunmiPrinter = ret?FoundSunmiPrinter:NoSunmiPrinter;
+    sunmiPrinter = ret?FoundSunmiPrinter:NoSunmiPrinter;
+    }
+
+    private boolean isArabic(String text) {
+        if (text == null) return false;
+        for (char c : text.toCharArray()) {
+            if (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.ARABIC) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void printRowWithTabs(String text, int fontSize) throws RemoteException {
+        if (text == null) return;
+        if (text.contains("\t")) {
+            String[] parts = text.split("\t");
+            if (parts.length == 2) {
+                String[] columns = new String[2];
+                int[] widths = new int[]{16, 16};
+                int[] aligns = new int[2];
+
+                if (isArabic(parts[0]) || isArabic(parts[1])) {
+                    // RTL logic: Flip columns and alignments
+                    columns[0] = parts[1];
+                    columns[1] = parts[0];
+                    aligns[0] = 0; // Left align (value)
+                    aligns[1] = 2; // Right align (label)
+                } else {
+                    // LTR logic
+                    columns[0] = parts[0];
+                    columns[1] = parts[1];
+                    aligns[0] = 0; // Left align (label)
+                    aligns[1] = 2; // Right align (value)
+                }
+                sunmiPrinterService.printColumnsString(columns, widths, aligns, null);
+                return;
+            }
+        }
+        sunmiPrinterService.printTextWithFont(text + "\n", null, fontSize, null);
     }
 
     /**
@@ -510,6 +554,8 @@ public class SunmiPrintHelper {
             if (image != null) {
                 sunmiPrinterService.printBitmap(image, null);
                 sunmiPrinterService.lineWrap(1, null);
+                sunmiPrinterService.lineWrap(1, null);
+
             }
         }
             sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.ENABLE); // Enable bold
@@ -520,38 +566,39 @@ public class SunmiPrintHelper {
             sunmiPrinterService.printTextWithFont(successHeader, null, 30, null);
             sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.DISABLE); // Disable bold
             sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(merchant, null, 25, null);
+            sunmiPrinterService.printTextWithFont(merchant, null, 23, null);
             sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont("- " + branch + " -", null, 25, null);
+            sunmiPrinterService.printTextWithFont("- " + branch + " -", null, 23, null);
             sunmiPrinterService.lineWrap(1, null);
-            sunmiPrinterService.printTextWithFont(dateTime , null, 24, null);
+            sunmiPrinterService.printTextWithFont(dateTime , null, 23, null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.printText("--------------------------------", null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.setAlignment(0, null);
             if (walletCode != null) {
-                sunmiPrinterService.printTextWithFont(walletCode + "\n", null, 25, null);
+                printRowWithTabs(walletCode, 20);
                 sunmiPrinterService.lineWrap(1, null);
                 sunmiPrinterService.printText("--------------------------------", null);
                 sunmiPrinterService.lineWrap(1, null);
                 sunmiPrinterService.lineWrap(1, null);
             }
-            sunmiPrinterService.printTextWithFont(transactionType + "\n", null, 25, null);
+            printRowWithTabs(transactionType, 20);
             sunmiPrinterService.lineWrap(1, null);
 
             // Print your text
-            sunmiPrinterService.printTextWithFont(transactionId + "\n", null, 25, null);
+            printRowWithTabs(transactionId, 20);
+            sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.printText("--------------------------------", null);
             sunmiPrinterService.lineWrap(1, null);
             sunmiPrinterService.lineWrap(1, null);
 
-            sunmiPrinterService.printTextWithFont(value + "\n", null, 25, null);
+            printRowWithTabs(value, 20);
             sunmiPrinterService.lineWrap(1, null);
 
             if (points != null) {
-                sunmiPrinterService.printTextWithFont(points + "\n", null, 25, null);
+                printRowWithTabs(points, 20);
                 sunmiPrinterService.lineWrap(1, null);
             }
 
@@ -567,27 +614,83 @@ public class SunmiPrintHelper {
         }
     }
 
-public Bitmap getBitmapFromURL(String src) {
-    try {
-        URL url = new URL(src);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoInput(true);
-        connection.connect();
-        InputStream input = connection.getInputStream();
-        Bitmap original = BitmapFactory.decodeStream(input);
-        if (original == null) return null;
+    public Bitmap getBitmapFromURL(String src) {
+        try {
+            URL url = new URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap original = BitmapFactory.decodeStream(input);
+            if (original == null) return null;
 
-        // Resize to safe width for Sunmi printer (typically 384px or 576px)
-        int targetWidth = 300;
-        float aspectRatio = (float) original.getHeight() / original.getWidth();
-        int targetHeight = Math.round(targetWidth * aspectRatio);
-        return Bitmap.createScaledBitmap(original, targetWidth, targetHeight, true);
+            return scaleAndOptimizeBitmap(original);
 
-    } catch (IOException e) {
-        e.printStackTrace();
-        return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
-}
+
+    private Bitmap scaleAndOptimizeBitmap(Bitmap src) {
+        // 1. Resize to target width
+        int targetWidth = 384; 
+        float aspectRatio = (float) src.getHeight() / src.getWidth();
+        int targetHeight = Math.round(targetWidth * aspectRatio);
+        Bitmap scaled = Bitmap.createScaledBitmap(src, targetWidth, targetHeight, true);
+
+        // 2. Create a grayscale bitmap with a solid WHITE background (handles transparency)
+        Bitmap grayBitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(grayBitmap);
+        canvas.drawColor(Color.WHITE); // Fill with white first
+        
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0); // Convert to grayscale
+        paint.setColorFilter(new ColorMatrixColorFilter(cm));
+        canvas.drawBitmap(scaled, 0, 0, paint);
+
+        // 3. Apply Floyd-Steinberg Dithering for maximum clarity
+        int width = grayBitmap.getWidth();
+        int height = grayBitmap.getHeight();
+        int[] pixels = new int[width * height];
+        grayBitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        int[] grayValues = new int[pixels.length];
+        for (int i = 0; i < pixels.length; i++) {
+            grayValues[i] = Color.red(pixels[i]); // Since it's grayscale, R=G=B
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int oldPixel = grayValues[y * width + x];
+                int newPixel = oldPixel < 128 ? 0 : 255; // Binary threshold
+                grayValues[y * width + x] = newPixel;
+                
+                int error = oldPixel - newPixel;
+
+                // Spread error to neighbors (Floyd-Steinberg)
+                if (x + 1 < width) 
+                    grayValues[y * width + (x + 1)] += error * 7 / 16;
+                if (x - 1 >= 0 && y + 1 < height) 
+                    grayValues[(y + 1) * width + (x - 1)] += error * 3 / 16;
+                if (y + 1 < height) 
+                    grayValues[(y + 1) * width + x] += error * 5 / 16;
+                if (x + 1 < width && y + 1 < height) 
+                    grayValues[(y + 1) * width + (x + 1)] += error * 1 / 16;
+            }
+        }
+
+        // 4. Convert back to Bitmap
+        for (int i = 0; i < pixels.length; i++) {
+            int val = grayValues[i] < 0 ? 0 : (grayValues[i] > 255 ? 255 : grayValues[i]);
+            pixels[i] = Color.rgb(val, val, val);
+        }
+        
+        Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        result.setPixels(pixels, 0, width, 0, 0, width, height);
+        return result;
+    }
 
 
     /**
