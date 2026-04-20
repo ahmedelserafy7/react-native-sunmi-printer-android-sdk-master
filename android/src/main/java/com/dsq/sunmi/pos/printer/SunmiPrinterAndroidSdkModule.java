@@ -7,6 +7,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 
 public class SunmiPrinterAndroidSdkModule extends ReactContextBaseJavaModule {
 
@@ -18,9 +19,38 @@ public class SunmiPrinterAndroidSdkModule extends ReactContextBaseJavaModule {
         SunmiPrintHelper.getInstance().initSunmiPrinterService(reactContext);
     }
     @ReactMethod
-    public static void printSunmiPrinter(String name, String successHeader, String branch, String merchant, String transactionType, String dateTime, String thankYou, String thisIsAcopy, String transactionId, String walletCode, String value, String points, String imageUrl) {
-        
-        SunmiPrintHelper.getInstance().printDsq(name, successHeader, branch, merchant, transactionType, dateTime, thankYou, thisIsAcopy, transactionId, walletCode, value, points, imageUrl);
+    public void printSunmiPrinter(String imageUrl, ReadableArray firstRegularHeader, ReadableArray boldHeader, ReadableArray secondRegularHeader, ReadableArray contentRows, ReadableArray footerData, String qrUrl, String qrDisclaimer, ReadableArray boldLineIndicesArray, ReadableArray sectionSizesArray) {
+        String[] firstRegularHead = parseReadableArray(firstRegularHeader);
+        String[] boldHead = parseReadableArray(boldHeader);
+        String[] secondRegularHead = parseReadableArray(secondRegularHeader);
+        String[] rows = parseReadableArray(contentRows);
+        String[] footer = parseReadableArray(footerData);
+        int[] boldLineIndices = parseIntArray(boldLineIndicesArray);
+        int[] sectionSizes = parseIntArray(sectionSizesArray);
+
+        SunmiPrintHelper.getInstance().printDsq(imageUrl, firstRegularHead, boldHead, secondRegularHead, rows, footer, qrUrl, qrDisclaimer, boldLineIndices, sectionSizes);
+    }
+
+    private String[] parseReadableArray(ReadableArray readableArray) {
+        if (readableArray == null) {
+            return null;
+        }
+        String[] array = new String[readableArray.size()];
+        for (int i = 0; i < readableArray.size(); i++) {
+            array[i] = readableArray.getString(i);
+        }
+        return array;
+    }
+
+    private int[] parseIntArray(ReadableArray readableArray) {
+        if (readableArray == null) {
+            return null;
+        }
+        int[] array = new int[readableArray.size()];
+        for (int i = 0; i < readableArray.size(); i++) {
+            array[i] = readableArray.getInt(i);
+        }
+        return array;
     }
 
     @Override
