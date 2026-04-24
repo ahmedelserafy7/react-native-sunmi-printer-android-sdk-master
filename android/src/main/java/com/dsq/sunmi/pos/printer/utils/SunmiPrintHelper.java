@@ -157,16 +157,16 @@ public class SunmiPrintHelper {
                     // RTL logic: Flip columns and alignments
                     columns[0] = parts[1];
                     columns[1] = parts[0];
-                    widths[0] = 16;
-                    widths[1] = 16;
+                    widths[0] = 15;
+                    widths[1] = 17;
                     aligns[0] = 0; // Left align (value)
                     aligns[1] = 2; // Right align (label)
                 } else {
                     // LTR logic
                     columns[0] = parts[0];
                     columns[1] = parts[1];
-                    widths[0] = 16;
-                    widths[1] = 16;
+                    widths[0] = 17;
+                    widths[1] = 15;
                     aligns[0] = 0; // Left align (label)
                     aligns[1] = 2; // Right align (value)
                 }
@@ -553,7 +553,8 @@ public class SunmiPrintHelper {
 
     }
 
-    public void printDsq(String imageUrl, String[] firstRegularHeader, String[] boldHeader, String[] secondRegularHeader, String[] contentRows,
+    public void printDsq(String imageUrl, String[] firstRegularHeader, String[] boldHeader,
+            String[] secondRegularHeader, String[] contentRows,
             String[] footerData, String qrUrl, String qrDisclaimer, int[] boldLineIndices, int[] sectionSizes) {
 
         if (sunmiPrinterService == null) {
@@ -620,7 +621,7 @@ public class SunmiPrintHelper {
                         if (shouldBold) {
                             sunmiPrinterService.setPrinterStyle(WoyouConsts.ENABLE_BOLD, WoyouConsts.ENABLE);
                         }
-                        
+
                         printRowWithTabs(rowData, 20);
                         sunmiPrinterService.lineWrap(1, null); // one blank after each row
 
