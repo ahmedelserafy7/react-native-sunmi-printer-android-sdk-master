@@ -150,19 +150,23 @@ public class SunmiPrintHelper {
             String[] parts = text.split("\t");
             if (parts.length == 2) {
                 String[] columns = new String[2];
-                int[] widths = new int[] { 16, 16 };
+                int[] widths = new int[2];
                 int[] aligns = new int[2];
 
                 if (isArabic(parts[0]) || isArabic(parts[1])) {
                     // RTL logic: Flip columns and alignments
                     columns[0] = parts[1];
                     columns[1] = parts[0];
+                    widths[0] = 16;
+                    widths[1] = 16;
                     aligns[0] = 0; // Left align (value)
                     aligns[1] = 2; // Right align (label)
                 } else {
                     // LTR logic
                     columns[0] = parts[0];
                     columns[1] = parts[1];
+                    widths[0] = 16;
+                    widths[1] = 16;
                     aligns[0] = 0; // Left align (label)
                     aligns[1] = 2; // Right align (value)
                 }
